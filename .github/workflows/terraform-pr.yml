@@ -34,31 +34,36 @@ jobs:
           terraform_version: '1.6.0'
 
       - name: Terraform fmt check
-        working-directory: ${{ env.TERRAFORM_DIR }}
-        run: terraform fmt -check -recursive
+        run: |
+          cd "${{ env.TERRAFORM_DIR }}"
+          terraform fmt -check -recursive
 
       - name: Terraform init
-        working-directory: ${{ env.TERRAFORM_DIR }}
-        run: terraform init -input=false
+        run: |
+          cd "${{ env.TERRAFORM_DIR }}"
+          terraform init -input=false
 
       - name: Terraform validate
-        working-directory: ${{ env.TERRAFORM_DIR }}
-        run: terraform validate
+        run: |
+          cd "${{ env.TERRAFORM_DIR }}"
+          terraform validate
 
       - name: Install tfsec
         run: |
           curl -sSL https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
 
       - name: Terraform scan (static analysis)
-        working-directory: ${{ env.TERRAFORM_DIR }}
-        run: tfsec .
+        run: |
+          cd "${{ env.TERRAFORM_DIR }}"
+          tfsec .
 
       - name: Terraform plan
-        working-directory: ${{ env.TERRAFORM_DIR }}
         run: |
+          cd "${{ env.TERRAFORM_DIR }}"
           terraform plan -out=tfplan -input=false
 
       - name: Terraform apply on main only
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        working-directory: ${{ env.TERRAFORM_DIR }}
-        run: terraform apply -auto-approve tfplan
+        run: |
+          cd "${{ env.TERRAFORM_DIR }}"
+          terraform apply -auto-approve tfplan
