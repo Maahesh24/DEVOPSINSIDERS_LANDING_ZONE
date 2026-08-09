@@ -44,6 +44,10 @@ jobs:
 
       - name: Terraform init
         run: |
+          export ARM_CLIENT_ID="${{ env.ARM_CLIENT_ID }}"
+          export ARM_CLIENT_SECRET="${{ env.ARM_CLIENT_SECRET }}"
+          export ARM_TENANT_ID="${{ env.ARM_TENANT_ID }}"
+          export ARM_SUBSCRIPTION_ID="${{ env.ARM_SUBSCRIPTION_ID }}"
           cd "${{ env.TERRAFORM_DIR }}"
           terraform init -input=false
 
