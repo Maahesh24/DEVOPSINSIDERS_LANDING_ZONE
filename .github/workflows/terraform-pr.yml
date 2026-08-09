@@ -1,0 +1,64 @@
+name: Terraform PR Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    name: Terraform scan, plan, apply
+    runs-on: ubuntu-latest
+    env:
+      TERRAFORM_DIR: environments/dev
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Terraform environment directory
+        run: |
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "TERRAFORM_DIR=environments/prod" >> $GITHUB_ENV
+          else
+            echo "TERRAFORM_DIR=environments/dev" >> $GITHUB_ENV
+          fi
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.6.0'
+
+      - name: Terraform fmt check
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        run: terraform fmt -check -recursive
+
+      - name: Terraform init
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        run: terraform init -input=false
+
+      - name: Terraform validate
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        run: terraform validate
+
+      - name: Install tfsec
+        run: |
+          curl -sSL https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+
+      - name: Terraform scan (static analysis)
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        run: tfsec .
+
+      - name: Terraform plan
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        run: |
+          terraform plan -out=tfplan -input=false
+
+      - name: Terraform apply on main only
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        run: terraform apply -auto-approve tfplan
