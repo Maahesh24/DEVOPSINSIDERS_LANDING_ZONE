@@ -85,8 +85,8 @@ resource "azurerm_linux_virtual_machine" "vm" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
-    sku        = "22_04-lts-gen2"
-    version    = "latest"
+    sku       = "22_04-lts-gen2"
+    version   = "latest"
   }
 }
 
@@ -129,6 +129,6 @@ resource "azurerm_virtual_network_peering" "vnet_peering" {
 
   allow_virtual_network_access = each.value.allow_virtual_network_access
   allow_forwarded_traffic      = each.value.allow_forwarded_traffic
-  allow_gateway_transit         = each.value.allow_gateway_transit
-  use_remote_gateways           = each.value.use_remote_gateways
+  allow_gateway_transit        = each.value.allow_gateway_transit
+  use_remote_gateways          = each.value.use_remote_gateways
 }

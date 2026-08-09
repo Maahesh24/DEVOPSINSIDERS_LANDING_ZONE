@@ -1,0 +1,77 @@
+name: Terraform PR Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    name: Terraform scan, plan, apply
+    runs-on: ubuntu-latest
+    env:
+      TERRAFORM_DIR: environments/dev
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Terraform environment directory
+        run: |
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "TERRAFORM_DIR=environments/prod" >> $GITHUB_ENV
+          else
+            echo "TERRAFORM_DIR=environments/dev" >> $GITHUB_ENV
+          fi
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.6.0'
+
+      - name: Terraform fmt check
+        run: |
+          cd "${{ env.TERRAFORM_DIR }}"
+          terraform fmt -check -recursive
+
+      - name: Terraform init
+        run: |
+          export ARM_CLIENT_ID="${{ env.ARM_CLIENT_ID }}"
+          export ARM_CLIENT_SECRET="${{ env.ARM_CLIENT_SECRET }}"
+          export ARM_TENANT_ID="${{ env.ARM_TENANT_ID }}"
+          export ARM_SUBSCRIPTION_ID="${{ env.ARM_SUBSCRIPTION_ID }}"
+          cd "${{ env.TERRAFORM_DIR }}"
+          terraform init -input=false
+
+      - name: Terraform validate
+        run: |
+          cd "${{ env.TERRAFORM_DIR }}"
+          terraform validate
+
+      - name: Install tfsec
+        run: |
+          curl -sSL https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+
+      - name: Terraform scan (static analysis)
+        run: |
+          cd "${{ env.TERRAFORM_DIR }}"
+          tfsec .
+
+      - name: Terraform plan
+        run: |
+          cd "${{ env.TERRAFORM_DIR }}"
+          terraform plan -out=tfplan -input=false
+
+      - name: Terraform apply on main only
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          cd "${{ env.TERRAFORM_DIR }}"
+          terraform apply -auto-approve tfplan
