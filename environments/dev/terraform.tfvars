@@ -88,19 +88,19 @@ bastion = {
 
 vnet_peering = {
   dev-to-prod = {
-    name                        = "dev-to-prod"
-    resource_group_name         = "rg-dhondhu-dev"
-    virtual_network_name        = "vnet-dhondhu-dev"
-    remote_virtual_network_id   = "/subscriptions/<sub-id>/resourceGroups/rg-dhondhu-prod/providers/Microsoft.Network/virtualNetworks/vnet-dhondhu-prod"
+    name                         = "dev-to-prod"
+    resource_group_name          = "rg-dhondhu-dev"
+    virtual_network_name         = "vnet-dhondhu-dev"
+    remote_virtual_network_id    = "/subscriptions/<sub-id>/resourceGroups/rg-dhondhu-prod/providers/Microsoft.Network/virtualNetworks/vnet-dhondhu-prod"
     allow_forwarded_traffic      = true
     allow_virtual_network_access = true
   }
 
   prod-to-dev = {
-    name                        = "prod-to-dev"
-    resource_group_name         = "rg-dhondhu-prod"
-    virtual_network_name        = "vnet-dhondhu-prod"
-    remote_virtual_network_id   = "/subscriptions/<sub-id>/resourceGroups/rg-dhondhu-dev/providers/Microsoft.Network/virtualNetworks/vnet-dhondhu-dev"
+    name                         = "prod-to-dev"
+    resource_group_name          = "rg-dhondhu-prod"
+    virtual_network_name         = "vnet-dhondhu-prod"
+    remote_virtual_network_id    = "/subscriptions/<sub-id>/resourceGroups/rg-dhondhu-dev/providers/Microsoft.Network/virtualNetworks/vnet-dhondhu-dev"
     allow_forwarded_traffic      = true
     allow_virtual_network_access = true
   }
