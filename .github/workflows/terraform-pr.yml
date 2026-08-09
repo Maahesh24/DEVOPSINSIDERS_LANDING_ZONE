@@ -33,6 +33,11 @@ jobs:
         with:
           terraform_version: '1.6.0'
 
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       - name: Terraform fmt check
         run: |
           cd "${{ env.TERRAFORM_DIR }}"
